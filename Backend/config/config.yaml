@@ -1,0 +1,9 @@
+SERVER_PORT: 8085
+
+database:
+  postgres:
+    host: localhost
+    port: "5432"
+    user: jomishs
+    password:
+    db_name: test
