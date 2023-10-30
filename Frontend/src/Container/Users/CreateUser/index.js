@@ -1,10 +1,12 @@
 import { PlusOutlined } from '@ant-design/icons';
 import React, { useState } from 'react';
-import './createuser.scss'
+import './styles.scss'
 import axios from 'axios';
 import {Button,Form,Input} from 'antd';
 import {useNavigate } from "react-router-dom"
+import { insert } from './service';
 const { TextArea } = Input;
+
 
 
 
@@ -12,7 +14,7 @@ const { TextArea } = Input;
   export function Createuser(){
       const navigate=useNavigate()
       const [errorName,setErrorName] = useState('')
-      const[values,setValues]=useState({first_name:'',last_name:'',age:'',email:'',city:'',phone:'',birth_date:'',sex:'',country:'',document_id:''})
+      const[values,setValues]=useState({first_name:'',last_name:'',age:'',email:'',city:'',phone:'',birth_date:'',sex:'',country:'',doc_id:''})
       const set=(event)=>{
         setValues({...values,[event.target.name]:event.target.value})
       }
@@ -26,33 +28,26 @@ const { TextArea } = Input;
       
 
       const handleSubmit=async (e)=>{
-        let index=values.document_id
+        let index=values.doc_id
         console.log(index)
 
-    if(!values.first_name || !values.last_name || !values.city || !values.phone || !values.sex || !values.country || !values.birth_date || !values.document_id || !values.email || !values.age){
+    if(!values.first_name || !values.last_name || !values.city || !values.phone || !values.sex || !values.country || !values.birth_date || !values.doc_id || !values.email || !values.age){
         alert("please complete the details")
       }
       else{
         e.preventDefault()
         console.log(values)
-        axios.get(`http://localhost:8085/documents/${index}`).then((res)=>{ 
-              axios.post('http://localhost:8085/users',values,  {
-                headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },}).then((res)=>{
-            
-              setErrorName('Value added ')
-                  navigate('/')
-            },(err)=>{
-                console.log(err)
-                
-            })
-      },(err)=>{
-        console.log(err)
-          console.log("erorr in getting results inside fetch data")
-          alert("please check the values entered")
+
+
+      const resp = insert(values);
+      resp
+      .then((res) => {
+        navigate('/')
       })
+      .catch((err) =>{ 
+        console.log(err)
+        setErrorName(err.response.data)
+      });  
 
       }
     }
@@ -101,7 +96,7 @@ const { TextArea } = Input;
           <Input placeholder='Enter country' name='country' value={values.name} onChange={set}/>
         </Form.Item>
         <Form.Item label="Document id">
-          <Input placeholder='Enter country' type='number' name='document_id' value={values.document_id} onChange={handleChange}/>
+          <Input placeholder='Enter document id' type='number' name='doc_id' value={values.doc_id} onChange={handleChange}/>
         </Form.Item>
         <br/>
         <p style={{color:'red'}}>{errorName}</p>

@@ -9,8 +9,12 @@ import (
 	// "fmt"
 	"fmt"
 	"net/http"
+
 	// "strconv"
+	"example/Project3/internal/dto"
 	"example/Project3/internal/model"
+	"example/Project3/internal/util"
+
 	// "example/Project3/db"
 	Service "example/Project3/internal/service"
 
@@ -56,10 +60,7 @@ func (c *Usercon) GetByIdUser(ctx *gin.Context) {
 
 	var statuscode int
 	id := ctx.Param("id")
-	//var params model.Plant
 	params, err := c.Userserv.GetByIdUser(ctx, id)
-	fmt.Println("after  request")
-	// err := ctx.ShouldBindJSON(&params)
 	if err != nil {
 		statuscode = http.StatusBadRequest
 		ctx.JSON(statuscode, "error in finding")
@@ -71,20 +72,23 @@ func (c *Usercon) GetByIdUser(ctx *gin.Context) {
 
 func (c *Usercon) GetAllUser(ctx *gin.Context) {
 	var statuscode int
-	params, err := c.Userserv.GetAllUser(ctx)
+	params := &dto.AssetQueryParams{}
+	if err := ctx.ShouldBindQuery(params); err != nil {
+		ctx.JSON(http.StatusBadRequest, "error in query parameter")
+		return
+	}
+	todo, count, err := c.Userserv.GetAllUser(ctx, params)
 	if err != nil {
 		statuscode = http.StatusBadRequest
 		ctx.JSON(statuscode, "error in finding")
 		return
 	}
-	ctx.JSON(http.StatusOK, params)
+	util.SuccessResponseWithCount(ctx, http.StatusOK, "Successfully searched", count, todo)
 
 }
 
-
 func (c *Usercon) UpdateUser(ctx *gin.Context) {
 
-	// var	 statuscode int
 	id := ctx.Param("id")
 	var paramss model.User
 	err := ctx.ShouldBindJSON(&paramss)
@@ -92,7 +96,6 @@ func (c *Usercon) UpdateUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "error in update"})
 	}
 	err = c.Userserv.UpdateUser(ctx, id, paramss)
-	// err := ctx.ShouldBindJSON(&params)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, "error in finding")
 		return
@@ -104,7 +107,6 @@ func (c *Usercon) DeleteUser(ctx *gin.Context) {
 	id := ctx.Param("id")
 
 	err := c.Userserv.DeleteUser(ctx, id)
-	// err := ctx.ShouldBindJSON(&params)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, "error in deleting")
 		return

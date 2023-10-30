@@ -6,17 +6,11 @@ import (
 	"example/Project3/internal/repository"
 	 "example/Project3/internal/routes"
  	"example/Project3/internal/service"
-	"fmt"
-	//  "gorm.io/gorm"
 )
 
 func GetRouteMapper() Routes.RouteMapper {
-	// con := database.ConnectFunc()
-	// db := con.GetDB()
-	db := database.GetDB()
 
-	fmt.Println("inside GetRouteMapper")
-	fmt.Println(db)
+	db := database.GetDB()
 	user := repository.UserRepFunc(db)
 	serviceUser := Service.UserServFunc(user)
 	controllerUser := controllers.UserConFunc(serviceUser)

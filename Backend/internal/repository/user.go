@@ -1,17 +1,13 @@
 package repository
 
 import (
+	"example/Project3/internal/constant"
+	"example/Project3/internal/dto"
 	"example/Project3/internal/model"
+	"example/Project3/internal/util"
 	"fmt"
 	"time"
-
-	// "log"
-	// "strconv"
-	// "errors"
 	"context"
-
-	// "github.com/gin-gonic/gin"
-	// "github.com/go-playground/validator/v10"
 	"example/Project3/database"
 
 	"github.com/go-playground/validator"
@@ -22,13 +18,12 @@ import (
 type Userrepository interface {
 	CreateUser(c context.Context, params model.User) (model.User, error)
 	GetByIdUser(ctx context.Context, id string) (model.User, error)
-	GetAllUser(ctx context.Context) ([]model.User, error)
+	GetAllUser(ctx context.Context, query *dto.AssetQueryParams, filterMap dto.SearchFilters) (user []model.User, totalCount int, err error)
 	UpdateUser(ctx context.Context, id string, paramss model.User) error
 	DeleteUser(ctx context.Context, id string) error
 }
 
 type Userrepo struct {
-	// Datab database.Connect
 	Db *gorm.DB
 }
 
@@ -60,7 +55,7 @@ func validateUser(user *model.User) error {
 }
 
 func (c *Userrepo) GetByIdUser(ctx context.Context, id string) (user model.User, err error) {
-	err = c.Db.First(&user, id).Error
+	err = c.Db.Where("deleted_at IS NULL").First(&user, id).Error
 	if err != nil {
 		return user, err
 	}
@@ -68,17 +63,31 @@ func (c *Userrepo) GetByIdUser(ctx context.Context, id string) (user model.User,
 	return user, err
 }
 
-func (c *Userrepo) GetAllUser(ctx context.Context) ([]model.User, error) {
+func (c *Userrepo) GetAllUser(ctx context.Context, query *dto.AssetQueryParams, filterMap dto.SearchFilters) (user []model.User, totalCount int, err error) {
 
-	var err error
-	users := []model.User{}
+	var userd model.User
+	txn := c.Db.Debug().WithContext(ctx).Model(userd)
+	test := txn.Model(userd)
+	params := test.Scopes(util.ColumnValCheck(constant.ColDeletedAt))
 
-	err = c.Db.Where("deletedat IS NULL").Find(&users).Error
+	wherePredicates, err := util.GetWherePredicatesUser(params, filterMap, userd)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return users, err
+	paginationPredicates := util.GetPaginationPredicates(query.Page, query.Limit)
+	sortPredicates := util.GetSortPredicates(query.SortBy)
+
+	params = util.AddScopes(txn, wherePredicates)
+	totalCount, err = util.GetTotalCount(params)
+	if err != nil {
+		return nil, 0, err
+	}
+	params = util.AddScopes(params, sortPredicates, paginationPredicates)
+
+	err = params.Find(&user).Error
+
+	return user, totalCount, err
 }
 
 func (c *Userrepo) UpdateUser(ctx context.Context, id string, paramss model.User) error {
@@ -92,17 +101,13 @@ func (c *Userrepo) UpdateUser(ctx context.Context, id string, paramss model.User
 	update.City = paramss.City
 	update.Country = paramss.Country
 	update.Phone = paramss.Phone
-	// err := databseconn.Getdb().Where("id=?", id).Update("plant",paramss.Plant).Error
-	// fmt.Println("repository")
 	if err := c.Db.Save(&update).Error; err != nil {
 		return err
 	}
 	return nil
 }
 func (c *Userrepo) DeleteUser(ctx context.Context, id string) error {
-	// var user model.User
-	// err := c.Db.Delete(&user, id).Error
-	// return err
+
 	var user *model.User
 	if err := c.Db.First(&user, id).Error; err != nil {
 		return err

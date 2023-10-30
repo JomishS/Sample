@@ -9,7 +9,7 @@
             "type": "go",
             "request": "launch",
             "mode": "debug",
-            "program": "${file}"
+            "program": "main.go"
         },
         {
             "name": "Launch file Local",
@@ -32,10 +32,10 @@
             "request": "launch",
             "mode": "debug",
             "program": "main.go",
-            // "args": [
-            //     "migrate",
-            //     "up"
-            // ],
+            "args": [
+                "migrate",
+                "up"
+            ],
             "env": {
                 "ENV": "local",
                 // "GOARCH": "arm64",

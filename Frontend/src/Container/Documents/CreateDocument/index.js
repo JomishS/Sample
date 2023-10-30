@@ -3,6 +3,7 @@ import './AddDocument.scss'
 import axios from 'axios';
 import {Form,Input,Button} from 'antd';
 import { Link,useNavigate } from "react-router-dom"
+import { insert } from './service';
 
 
 
@@ -23,21 +24,17 @@ import { Link,useNavigate } from "react-router-dom"
           }
           else{
             e.preventDefault()
-            console.log(values)
-    
-          axios.post('http://localhost:8085/documents',values,  {
-            headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-        },}).then((res)=>{
-          setErrorName('Value added ')
+            const resp = insert(values);
+            resp
+            .then((res) => {
               navigate('/')
-        },(err)=>{
-            console.log(err)
-            setErrorName(err.response.data)
-        })
-      }
+            })
+            .catch((err) =>{ 
+              console.log(err)
+              setErrorName(err.response.data)
+            });   
           }
+        }
 
   return (
     <>

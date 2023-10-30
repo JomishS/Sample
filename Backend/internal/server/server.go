@@ -17,7 +17,6 @@ func Init() error {
 	var port string
 	conf := config.GetConfig()
 	err := database.InitPostgres(conf.Database.Postgres.ToPostgresConnectionConfig())
-	// database.InitPostgres()
 	if err != nil {
 		return err
 	}
@@ -47,6 +46,3 @@ func Init() error {
 	return nil
 }
 
-// func Init(){
-// 	config.InitPostgres()
-// }

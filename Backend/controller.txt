@@ -1,10 +1,21 @@
 package controllers
 
 import (
+	// "database/sql"
+	// "errors"
+	// "log"
+
+	// "encoding/json"
+	// "fmt"
 	"fmt"
 	"net/http"
+	// "strings"
+
+	// "strconv"
 	"example/Project3/internal/dto"
 	"example/Project3/internal/model"
+
+	// "example/Project3/db"
 	Service "example/Project3/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -73,7 +84,9 @@ func (c *Doccon) GetAllDoc(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, "error in query parameter")
 		return
 	}
-
+	// filter := params.Filter
+	// filterParams := parseFilterParam(filter)
+	// fmt.Println(filterParams["Field"])
 	todo, err := c.Docserv.GetAllDoc(ctx, params)
 	if err != nil {
 		statuscode = http.StatusBadRequest
@@ -86,6 +99,7 @@ func (c *Doccon) GetAllDoc(ctx *gin.Context) {
 
 func (c *Doccon) UpdateDoc(ctx *gin.Context) {
 
+	// var	 statuscode int
 	id := ctx.Param("id")
 	var paramss model.Document
 	err := ctx.ShouldBindJSON(&paramss)
@@ -93,6 +107,7 @@ func (c *Doccon) UpdateDoc(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "error in update"})
 	}
 	todo, err := c.Docserv.UpdateDoc(ctx, id, paramss)
+	// err := ctx.ShouldBindJSON(&params)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, "error in finding")
 		return
@@ -111,3 +126,64 @@ func (c *Doccon) DeleteDoc(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, gin.H{"message": " deleted"})
 }
+
+
+
+
+// func parseFilterParam(filterParam string) map[string]string {
+// 	params := make(map[string]string)
+// 	parts := strings.Split(filterParam, ":")
+// 	if len(parts) == 2 {
+// 		parts1 := strings.Split(parts[0], "[")
+// 		if len(parts1) == 2 {
+// 			params["Field"] = parts1[0]
+// 			params["Operator"] = strings.TrimSuffix(parts1[1], "]")
+// 			params["Value"] = parts[1]
+// 		}
+// 	}
+// 	return params
+// }
+
+
+
+
+
+
+
+
+
+// func SortDoc(context *gin.Context) {
+// 	println("getting document details")
+// 	param := context.Param("param")
+
+// 	db :=database.SetupDB()
+// 	context.Header("Content-Type", "application/json")
+
+// 	stmt, err := db.Prepare("SELECT id,title,format,author,owner,validity FROM document WHERE deleted=false ORDER BY " + param)
+// 	//here we are referring to a column so we need to use prepare statement like this .In the other case we are just referering to a value.
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	defer stmt.Close()
+
+// 	rows, err := stmt.Query()
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	defer rows.Close()
+
+// 	var doc []model.Document
+// 	for rows.Next() {
+// 		var a model.Document
+// 		err := rows.Scan(&a.Id, &a.Title, &a.Format, &a.Author, &a.Owner, &a.Validity)
+// 		if err != nil {
+// 			log.Fatal(err)
+// 		}
+// 		doc = append(doc, a)
+// 	}
+// 	err = rows.Err()
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	context.IndentedJSON(http.StatusOK, doc)
+// 	}

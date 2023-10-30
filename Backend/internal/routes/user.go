@@ -1,8 +1,6 @@
 package Routes
 
 import (
-
-	// "example/Project3/internal/inject"
 	_ "github.com/lib/pq"
 )
 

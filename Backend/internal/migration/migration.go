@@ -1,95 +1,89 @@
 package migration
 
 import (
+	// "database/sql"
 	"errors"
+	"example/Project3/internal/config"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
 	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/lib/pq"
+
 )
 
-type DBMigrate struct {
-	Path string
-	DSN  string
+type Migrate struct {
 }
 
-func NewMigrate(dsn string, migrationpath string) *DBMigrate {
-	return &DBMigrate{
-		Path: migrationpath,
-		DSN:  dsn,
-	}
-}
-
-func (m *DBMigrate) GetPath() (string, error) {
-	mydir, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-	migrationFilePath := "file://" + mydir + m.Path
-	return migrationFilePath, nil
-}
-
-func (m *DBMigrate) Up(args []string) error {
+func (m *Migrate) Up(args []string) error {
 	var err error
 	var steps int
-	steps, err = strconv.Atoi(args[0])
-	if err != nil || steps < 1 {
-		return errors.New("argument must be an positive integer")
+	
+	if len(args) == 1 {
+		steps, err = strconv.Atoi(args[0])
+		if err != nil || steps < 1 {
+			return errors.New("argument must be an positive integer")
+		}
 	}
-
-	mydir, err := m.GetPath()
-	if err != nil {
-		return err
-	}
-
-	migrate, err := migrate.New(mydir, m.DSN)
+	fmt.Println(steps)
+	migrationPath := config.ViperConfig.GetString("POSTGRES_MIGRATION_PATH")
+	conf := config.GetConfig()
+	DSN := conf.Database.Postgres.GetDSN()
+	newMigrate, err := migrate.New(migrationPath, DSN)
 	if err != nil {
 		return err
 	}
 
 	if len(args) == 1 {
-		err = migrate.Steps(steps)
+		err = newMigrate.Steps(steps)
 	} else {
-		err = migrate.Up()
+		err = newMigrate.Up()
 	}
-	
+
 	if err == nil {
-		fmt.Println("Database migrations are successfull")
+		return nil
 	} else if strings.Contains(err.Error(), "no change") {
-		fmt.Println("No pending changes to apply on database migrations")
+		fmt.Println("No pending changes")
 		return nil
 	}
 	return err
 }
 
-func (m *DBMigrate) Down(args []string) error {
+func (m *Migrate) Down(args []string) error {
 	var err error
 	var steps int
-	steps, err = strconv.Atoi(args[0])
-	if err!=nil || steps < 1{
-		return errors.New("the argument must be a positive integer greater than 1")
+
+	if len(args) == 1 {
+		steps, err = strconv.Atoi(args[0])
+		if err != nil || steps < 1 {
+			return errors.New("argument must be an positive integer")
+		}
 	}
-	mydir, err := m.GetPath()
+
+	migrationPath := config.ViperConfig.GetString("POSTGRES_MIGRATION_PATH")
+	conf := config.GetConfig()
+	DSN := conf.Database.Postgres.GetDSN()
+	fmt.Println(migrationPath)
+	fmt.Println(DSN)
+	newMigrate, err := migrate.New(migrationPath, DSN)
 	if err != nil {
 		return err
 	}
-	migrate, err := migrate.New(mydir, m.DSN)
-	if err != nil {
-		return err
+
+	if len(args) == 1 {
+		err = newMigrate.Steps(-1 * steps)
+	} else {
+		err = newMigrate.Down()
 	}
-	if len(args)==1{
-		err=migrate.Steps(-1 * steps)
-	} else{
-		err=migrate.Down()
-	}
-	if err==nil{
+
+	if err == nil {
 		return nil
-	} else if strings.Contains(err.Error(),"no change"){
-		fmt.Println("no pending changes")
+	} else if strings.Contains(err.Error(), "no change") {
+		fmt.Println("No pending changes")
+		return nil
 	}
 	return err
-	// migrate.Steps(1)
-	// return migrate.Down()
 }

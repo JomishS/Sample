@@ -2,19 +2,12 @@ package Service
 
 import (
 
-	// "example/Project3/db"
 	"context"
+	"example/Project3/internal/dto"
 	"example/Project3/internal/model"
 	"example/Project3/internal/repository"
+	"example/Project3/internal/util"
 	"fmt"
-
-	// "errors"
-	// "log"
-	// "net/http"
-	// "strconv"
-	// "fmt"
-
-	// "github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 )
 
@@ -23,7 +16,7 @@ type Documentservice interface {
 	UpdateDoc(c context.Context, id string, params model.Document) (model.Document, error)
 	DeleteDoc(c context.Context, id string) ( error)
 	GetByIdDoc(c context.Context, id string) (model.Document, error)
-	GetAllDoc(c context.Context) ([]model.Document, error)
+	GetAllDoc(c context.Context,query *dto.AssetQueryParams) ([]model.Document, error)
 }
 
 type Docserv struct {
@@ -36,7 +29,6 @@ func DocumentServFunc(Docrepo repository.Documentrepository) Documentservice {
 	}
 }
 func (c *Docserv) CreateDoc(context context.Context, params *model.Document) (*model.Document, error) {
-	// fmt.Println("inside service")
 	crtdoc, err := c.Docrepo.CreateDoc(context, params)
 	fmt.Println("inside service")
 	return crtdoc, err
@@ -49,10 +41,14 @@ func (c *Docserv) GetByIdDoc(ctx context.Context, id string) (model.Document, er
 	return plant, err
 }
 
-func (c *Docserv) GetAllDoc(ctx context.Context) ([]model.Document, error) {
+func (c *Docserv) GetAllDoc(ctx context.Context,query *dto.AssetQueryParams) ([]model.Document, error) {
 	var err error
-	plant, err := c.Docrepo.GetAllDoc(ctx)
-	return plant, err
+	filterMap, err := util.ParseFilters(query.Filter)
+	if err != nil {
+		return nil, err
+	}
+	doc, _,err := c.Docrepo.GetAllDoc(ctx,query,filterMap)
+	return doc, err
 }
 
 func (c *Docserv) UpdateDoc(ctx context.Context, id string, paramss model.Document) (model.Document, error) {

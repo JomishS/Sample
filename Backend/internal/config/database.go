@@ -3,8 +3,6 @@ package config
 import (
 	"example/Project3/database"
 	"fmt"
-	// "net/url"
-	// "gorm.io/gorm"
 )
 
 type DatabaseConfig struct {
@@ -26,17 +24,8 @@ type MigrationConfig struct {
 
 func (c *PostgresConfig) GetDSN() string {
 
-	// encodedPassword := url.QueryEscape(c.Password)
-	fmt.Println("inside getdsn")
-	fmt.Println(c.Host)
-	fmt.Println(c.Port)
-	fmt.Println(c.Password)
-	fmt.Println(c.DBName)
-
 	dsn := fmt.Sprintf(
-		// "postgres://%s:%s:%s/%s",
-		// c.User,c.Host,c.Port,c.DBName,
-		"postgres://%s:%s@%s:%s/%s",
+		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		c.User, c.Password, c.Host, c.Port, c.DBName,
 	)
 	return dsn
@@ -49,20 +38,3 @@ func (c *PostgresConfig) ToPostgresConnectionConfig() *database.PostgresConnecti
 
 }
 
-// var db *gorm.DB
-
-// func InitPostgres() {
-// 	config := GetPostgresConnectionConfig()
-// 	db = database.InitPostgres(config)
-// 	fmt.Println("connection established")
-// }
-
-// func GetPostgresConnectionConfig() *database.PostgresConnectionConfig {
-// 	return &database.PostgresConnectionConfig{
-// 		DSN: ViperConfig.GetString("POSTGRES_DSN"),
-// 	}
-// }
-
-// func GetDB() *gorm.DB{
-// 	return db
-// }

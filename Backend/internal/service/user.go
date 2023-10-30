@@ -2,12 +2,10 @@ package Service
 
 import (
 	"context"
+	"example/Project3/internal/dto"
 	"example/Project3/internal/model"
 	"example/Project3/internal/repository"
-	// "errors"
-	// "log"
-	// "net/http"
-	// "github.com/gin-gonic/gin"
+	"example/Project3/internal/util"
 )
 
 type Userservice interface {
@@ -15,7 +13,7 @@ type Userservice interface {
 	UpdateUser(c context.Context, id string, params model.User) error
 	DeleteUser(c context.Context, id string) error
 	GetByIdUser(c context.Context, id string) (model.User, error)
-	GetAllUser(c context.Context) ([]model.User, error)
+	GetAllUser(c context.Context, query *dto.AssetQueryParams) ([]model.User, int, error)
 }
 
 type Userserv struct {
@@ -40,13 +38,15 @@ func (c *Userserv) GetByIdUser(ctx context.Context, id string) (model.User, erro
 	return plant, err
 }
 
-
-func (c *Userserv) GetAllUser(ctx context.Context) ([]model.User, error) {
+func (c *Userserv) GetAllUser(ctx context.Context, query *dto.AssetQueryParams) ([]model.User, int, error) {
 	var err error
-
-	plant, err := c.Userrepo.GetAllUser(ctx)
-	return plant, err
-
+	filterMap, err := util.ParseFilters(query.Filter)
+	if err != nil {
+		return nil, 0, err
+	}
+	
+	user, totalCount, err := c.Userrepo.GetAllUser(ctx, query, filterMap)
+	return user, totalCount, err
 }
 
 func (c *Userserv) UpdateUser(ctx context.Context, id string, paramss model.User) error {
